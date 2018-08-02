@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Nancy;
+using Microsoft.AspNetCore.Hosting;
+using System.IO;
 
 namespace TryingNancy.Trying
 {
@@ -6,7 +8,18 @@ namespace TryingNancy.Trying
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+
+            var server = new Nancy.Hosting.Self.NancyHost(new Uri("http://localhost:8282"));
+
+
+            var host = new WebHostBuilder()
+                        .UseKestrel()
+                        .UseUrls("http://*:5000")
+                        .UseContentRoot(Directory.GetCurrentDirectory())
+                        .UseStartup<Startup>()
+                        .Build();
+
+            host.Run();
         }
     }
 }
