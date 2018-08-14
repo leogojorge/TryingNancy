@@ -5,6 +5,7 @@ using Nancy.Diagnostics;
 using Nancy.TinyIoc;
 using System.Diagnostics;
 using System.Threading;
+using System.Linq;
 
 namespace TryingNancy.Trying
 {
@@ -25,11 +26,17 @@ namespace TryingNancy.Trying
         {
             pipelines.BeforeRequest += context =>
             {
-                if (context.Request.Headers.Authorization != "")
-                    return null;
-                
                 Stopwatch stopwatch = Stopwatch.StartNew();
                 context.Items.Add("Stopwatch", stopwatch);
+
+                bool doesWeHaveToStop = context.Request.Headers["PARA-PARA"].FirstOrDefault() == null ? false : true;
+
+                if(doesWeHaveToStop)
+                    return "You said us to stop...";
+
+                if (context.Request.Headers.Authorization == "")
+                    return HttpStatusCode.Unauthorized;
+                                
                 return null;
             };
 

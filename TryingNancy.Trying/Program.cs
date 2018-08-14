@@ -8,10 +8,6 @@ namespace TryingNancy.Trying
     {
         static void Main(string[] args)
         {
-
-            var server = new Nancy.Hosting.Self.NancyHost(new Uri("http://localhost:8282"));
-
-
             var host = new WebHostBuilder()
                         .UseKestrel()
                         .UseUrls("http://*:5000")
