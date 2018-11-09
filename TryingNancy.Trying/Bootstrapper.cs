@@ -1,49 +1,59 @@
 ﻿using Nancy;
 using Nancy.Bootstrapper;
-using Nancy.Configuration;
-using Nancy.Diagnostics;
 using Nancy.TinyIoc;
+using Newtonsoft.Json;
 using System.Diagnostics;
-using System.Threading;
 using System.Linq;
+using TryingNancy.Trying.Managers;
+using TryingNancy.Trying.Managers.Interfaces;
+using TryingNancy.Trying.Serializer;
 
 namespace TryingNancy.Trying
 {
     public class Bootstrapper : DefaultNancyBootstrapper
     {
-
         protected override void ApplicationStartup(TinyIoCContainer container, IPipelines pipelines)
         {
-            this.AddStopwatch(pipelines);
+            this.SetupPipelines(pipelines);
         }
 
-        public override void Configure(INancyEnvironment environment)
+        protected override void ConfigureApplicationContainer(TinyIoCContainer container)
         {
-            environment.Diagnostics(password: "123");
-            base.Configure(environment);
+            base.ConfigureApplicationContainer(container);
+
+            container.Register<JsonSerializer, CamelCaseJsonSerializer>();
         }
-        private void AddStopwatch(IPipelines pipelines)
+
+        protected override void ConfigureRequestContainer(TinyIoCContainer container, NancyContext context)
         {
-            pipelines.BeforeRequest += context =>
+            base.ConfigureRequestContainer(container, context);
+
+            container.Register<IDataProcessorManager, DataProcessorManager>().AsSingleton();
+            container.Register<IRouteDataManager, RouteDataManager>().AsMultiInstance();
+        }
+
+        private void SetupPipelines(IPipelines pipelines)
+        {
+            pipelines.BeforeRequest.AddItemToEndOfPipeline((context) =>
             {
                 Stopwatch stopwatch = Stopwatch.StartNew();
                 context.Items.Add("Stopwatch", stopwatch);
 
-                bool doesWeHaveToStop = context.Request.Headers["PARA-PARA"].FirstOrDefault() == null ? false : true;
+                bool doesWeHaveToStop = context.Request.Headers["Joao-Cleber"].FirstOrDefault() == "PARA-PARA" ? true : false;
 
-                if(doesWeHaveToStop)
-                    return "You said us to stop...";
+                if (doesWeHaveToStop)
+                    return "You've said us to stop...";
 
                 if (context.Request.Headers.Authorization == "")
                     return HttpStatusCode.Unauthorized;
                                 
                 return null;
-            };
+            });
 
-            pipelines.OnError += (context, ex) =>
+            pipelines.OnError.AddItemToEndOfPipeline((context, ex) =>
             {
                 return null;
-            };
+            });
 
             pipelines.AfterRequest.AddItemToEndOfPipeline(context =>
             {

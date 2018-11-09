@@ -1,5 +1,4 @@
-﻿using Nancy;
-using Microsoft.AspNetCore.Hosting;
+﻿using Microsoft.AspNetCore.Hosting;
 using System.IO;
 
 namespace TryingNancy.Trying
